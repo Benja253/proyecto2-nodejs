@@ -1,5 +1,6 @@
 const { Meal } = require('../models/meal.model')
 const { Order } = require('../models/order.model')
+const { Restaurant } = require('../models/restaurant.model')
 const { AppError } = require('../utils/AppError')
 const { catchAsync } = require('../utils/catchAsync')
 
@@ -29,6 +30,56 @@ const createOrder = catchAsync(async(req, res, next) => {
   })
 })
 
+const getAllOrderByUser = catchAsync(async(req, res, next) => {
+  const { userLogged } = req
+
+  const orders = await Order.findAll({
+    where: {
+      userId: userLogged.id,
+      status: 'active'
+    },
+    include: [{
+      model: Meal,
+      include: [{model: Restaurant}]
+    }]
+})
+
+  res.status(200).json({
+    status: 'success',
+    orders
+  })
+
+})
+
+const updateOrder = catchAsync(async(req, res, next) => {
+  const { order } = req
+
+  await order.update({
+    status: 'Completed'
+  })
+
+  res.status(200).json({
+    status: 'Order has been completed',
+    order
+  })
+})
+
+const deleteOrder = catchAsync(async(erq, res, next) => {
+  const { order } = req
+
+  await order.update({
+    status: 'cancelled'
+  })
+
+  res.status(200).json({
+    status: 'Order has been cancelled',
+    order
+  })
+})
+
 module.exports = {
-  createOrder
+  createOrder,
+  getAllOrderByUser,
+  updateOrder,
+  deleteOrder
 }
